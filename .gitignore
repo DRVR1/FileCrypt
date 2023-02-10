@@ -1,3 +1,6 @@
 
 pyinstaller.json
 todo.txt
+FileCrypt-log.txt
+__pycache__/funcs.cpython-310.pyc
+res/__pycache__/config.cpython-310.pyc

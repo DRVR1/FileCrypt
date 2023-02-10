@@ -21,6 +21,9 @@ class Main_Window():
         self.button_font = 'comic sans'
         self.button_border_color = '#848484'
         self.button_color = '#000000'
+        #clear button
+        self.button_clear_X = 120
+        self.button_clear_Y = 30
         #info box 
         self.textbox_X = 580
         self.textbox_Y = 230
@@ -35,6 +38,10 @@ class Password_input_window(Main_Window):
         self.password_title_font = ('comic sans',50)
         self.password_entry_size = (800,30)
 
+class Encrypt_Decrypt_Window(Main_Window):
+    def __init__(self) -> None:
+        Main_Window.__init__(self)
+        self.textbox_Y = 330
 
 class files():
     def __init__(self) -> None:

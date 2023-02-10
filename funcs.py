@@ -5,7 +5,12 @@ import tkinter
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 from tkinter.messagebox import askquestion
+from tkinter.filedialog import askopenfilenames
+from tkinter.filedialog import asksaveasfilename
+import wx.lib.agw.multidirdialog as MDD
+import wx
 import os
+import customtkinter
 import sys
 from tkinter.messagebox import showinfo
 import pathlib
@@ -35,17 +40,30 @@ def resource_path(relative_path):
 class Writer():
     def __init__(self) -> None:
         self.lineNumber = -1
-    def create(self,textbox):
+    def create(self,textbox:customtkinter.CTkTextbox):
         self.textbox = textbox
     def write(self,input):
         self.textbox.configure(state='normal')
         self.lineNumber += 1
         self.textbox.insert(tkinter.INSERT,str(self.lineNumber)+'. ' + input + '\n')
         self.textbox.configure(state='disabled')
+    def save(self):
+        file = asksaveasfilename(title='Select where to save your file',defaultextension='.txt',initialfile='FileCrypt-log')
+        if file:
+            f = open(file,'w')
+            f.write(self.textbox.get(1.0,'end'))
+            f.close()
+        pass
+    def clear(self):
+        self.lineNumber = -1
+        self.textbox.configure(state='normal')
+        self.textbox.delete(1.0,'end')
+        self.textbox.configure(state='disabled')
+        pass
 
 
 class Keys():
-    def __init__(self, writer) -> None:
+    def __init__(self, writer_main_window:Writer,writer_Encrypt_Decrypt_Window:Writer) -> None:
         #key names
         self.name_public = 'publicKey.txt'
         self.name_private = 'privateKey.txt'
@@ -59,8 +77,12 @@ class Keys():
         self.private_path = ''
         self.private_encrypted_path = ''
 
+        #user selected files - dir
+        self.targets = []
+
         #objects
-        self.writer = writer
+        self.writer_main_window = writer_main_window
+        self.writer_Encrypt_Decrypt_Window = writer_Encrypt_Decrypt_Window
 
     def loadpassword(self,password):
         self.password = password
@@ -76,45 +98,68 @@ class Keys():
         os.remove(path)
 
     def savekeys(self): #enter password and zip 
-        showinfo('Information','An explorer window will popup, please select the folder where the keys file will be created') 
-        path = askdirectory(title='Select the folder where the keys will be saved',mustexist=True) 
+        showinfo('Information','An explorer window will popup, please select the directory where the keys folder will be created.') 
+        path = askdirectory(title='Select the folder where the keys folder will be saved',mustexist=True) 
 
         if path:
             self.folder_path = path + '/' + self.name_folder
             try:
-                self.writer.write('Trying to create dir in: ' + self.folder_path)
+                self.writer_main_window.write('Trying to create dir in: ' + self.folder_path)
                 os.mkdir(self.folder_path)
-                self.writer.write('Dir created')
+                self.writer_main_window.write('Dir created')
             except:
                 error_string = 'The folder "' + self.name_folder + '" already exists in "' + self.folder_path +'". Cannot create new keys.'
-                self.writer.write(error_string)
+                self.writer_main_window.write(error_string)
                 showinfo('Error',error_string) 
                 return
                 pass
-            self.writer.write('Folder path is: ' + self.folder_path)
-            self.writer.write('Generating keys')
+            self.writer_main_window.write('Folder path is: ' + self.folder_path)
+            self.writer_main_window.write('Generating keys')
             try:
                 self.public_path = pathlib.Path(os.path.join(self.folder_path,self.name_public))
                 self.private_path = pathlib.Path(os.path.join(self.folder_path,self.name_private))
 
                 ffe.save_key_pair(public_key=self.public_path,private_key=self.private_path)
-                self.writer.write('Keys generated')
+                self.writer_main_window.write('Keys generated')
                 if(self.password):
-                    self.writer.write('Encrypting private key with loaded password')
+                    self.writer_main_window.write('Encrypting private key with loaded password')
                     try:
                         self.encrypt_Private()
-                        self.writer.write('Private key encrypted')
+                        self.writer_main_window.write('Private key encrypted')
                     except:
-                        self.writer.write('ERROR ENCRYPTING PRIVATE KEY')
+                        self.writer_main_window.write('ERROR ENCRYPTING PRIVATE KEY')
                 else:
-                    self.writer.write('Warning! private key was not encrypted, please save it in a safe place!')
+                    self.writer_main_window.write('Warning! private key was not encrypted, please save it in a safe place!')
             except:
-                self.writer.write('Error generating keys')
+                self.writer_main_window.write('Error generating keys')
         else:
-            self.writer.write('Operation canceled.')
+            self.writer_main_window.write('Operation canceled.')
 
-    def encrypt(self):
+    def printPaths(self): #prints selected files and dirs in the selected textbox
+        self.writer_Encrypt_Decrypt_Window.clear()
+        for path in self.targets:
+            self.writer_Encrypt_Decrypt_Window.write(path)
         pass
+
+    def select_folders(self):
+        a = wx.App(0)
+        dialog = MDD.MultiDirDialog(None, title="Press (ctrl + click) to select multiple folders", defaultPath=os.getcwd(),agwStyle=MDD.DD_MULTIPLE|MDD.DD_DIR_MUST_EXIST)
+        if dialog.ShowModal() != wx.ID_OK: #if close
+            dialog.Destroy()
+        folders = dialog.GetPaths()
+        for folder in folders:
+            print(folder)
+        pass #TODO continue
+
+    def select_files(self):
+        files = askopenfilenames(title='Add files (you can select multiple files at once)')
+        for file in files: 
+            if file in self.targets: #if file already was selected, continue
+                continue
+            self.targets.append(file) 
+        self.printPaths()
+        pass
+
     def encrypt_Private(self):
         if self.public_path:
             res = askquestion
@@ -127,8 +172,6 @@ class Keys():
         pyAesCrypt.encryptFile(self.private_path, self.private_encrypted_path, self.password)
         #safe delete source (decrypted private key)
         self.safedelete(self.private_path,3)
-    
-    #TODO modify password
 
     def loadpublic(self): #enter password and unzip
         showinfo('Information','An explorer window will popup, please select your public key')
@@ -136,19 +179,7 @@ class Keys():
         self.publicKey=ffe.read_public_key(ffe)
         print('filename is: ' + filename)
 
-
-
-class writer():
-    def __init__(self,textbox) -> None:
-        self.textbox = textbox
-        self.lineNumber = -1
-    def write(self,input):
-        self.textbox.configure(state='normal')
-        self.lineNumber += 1
-        self.textbox.insert(tkinter.INSERT,str(self.lineNumber)+'. ' + input + '\n')
-        self.textbox.configure(state='disabled')
-
-
 #objects
-wr = Writer()
-keys = Keys(wr)
+writer_main_window = Writer() # a writer for the main window
+writer_Encrypt_Decrypt_Window = Writer() # a writer for the encrypt_decrypt window
+keys = Keys(writer_main_window,writer_Encrypt_Decrypt_Window)

@@ -75,7 +75,7 @@ def window_main():
     inf.place(rely=0.7,relx=0.5,anchor=tkinter.CENTER)
 
     #tell the writter where the info box is!
-    funcs.wr.create(inf)
+    funcs.writer_main_window.create(inf)
     #now we can print the output in the infobox from other modules!!
 
     #ask to generate keys with a password
@@ -93,7 +93,7 @@ def window_main():
                 pass
             else:
                 funcs.keys.password = ''
-                funcs.wr.write('password removed.')
+                funcs.writer_main_window.write('password removed.')
                 extframe.configure(fg_color=wind.window_border_color)
                 #ask if create new password
                 res = askquestion(title='FileCrypt',message='Create another password?')
@@ -122,13 +122,27 @@ def window_main():
         border_width=wind.button_bordersize,
         command= askWithPassword
         )
-
     but.place(rely=0.25,relx=0.5,anchor=tkinter.CENTER)
 
 
-    def askEncrypt():
-        #place a new frame to overlap other widgets
-        frame = customtkinter.CTkFrame(master=app,fg_color=wind.menu_background_color,width=wind.menu_sizeX,height=wind.menu_sizeY)
+    #Clear Textbox
+    cleartx = customtkinter.CTkButton(
+        master=frame,
+        width=wind.button_clear_X,
+        height=wind.button_clear_Y,
+        text='Clear',
+        fg_color=wind.button_color,
+        font=(wind.button_font,wind.button_fontsize),
+        border_color=wind.button_border_color,
+        border_width=wind.button_bordersize,
+        command= funcs.writer_main_window.clear
+        )
+    cleartx.place(rely=0.965,relx=0.85,anchor=tkinter.CENTER)
+
+    def askEncrypt(): # a tab that overlaps main window
+        wind2 = config.Encrypt_Decrypt_Window()
+        #place a new frame to overlap other widgets        
+        frame = customtkinter.CTkFrame(master=app,fg_color=wind2.menu_background_color,width=wind2.menu_sizeX,height=wind2.menu_sizeY)
         frame.place(relx=0.5,rely=0.5,anchor=tkinter.CENTER)
 
         def back(*args):
@@ -136,55 +150,83 @@ def window_main():
                 widget.destroy()
 
         #button encrypt
-        but = customtkinter.CTkButton(
+        but_encrypt = customtkinter.CTkButton(
             master=frame,
-            width=wind.button_X,
-            height=wind.button_Y,
+            width=wind2.button_X,
+            height=wind2.button_Y,
             text='Encrypt',
-            fg_color=wind.button_color,
-            font=(wind.button_font,wind.button_fontsize),
-            border_color=wind.button_border_color,
-            border_width=wind.button_bordersize,
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
             )
-        but.place(rely=0.2,relx=0.5,anchor=tkinter.CENTER)
+        but_encrypt.place(rely=0.16,relx=0.14,anchor=tkinter.CENTER)
 
         #button decrypt
-        but = customtkinter.CTkButton(
+        but_Decrypt = customtkinter.CTkButton(
             master=frame,
-            width=wind.button_X,
-            height=wind.button_Y,
+            width=wind2.button_X,
+            height=wind2.button_Y,
             text='Decrypt',
-            fg_color=wind.button_color,
-            font=(wind.button_font,wind.button_fontsize),
-            border_color=wind.button_border_color,
-            border_width=wind.button_bordersize,
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
             )
-        but.place(rely=0.24,relx=0.5,anchor=tkinter.CENTER)
+        but_Decrypt.place(rely=0.16,relx=0.38,anchor=tkinter.CENTER)
+
         #button Select files
-        but = customtkinter.CTkButton(
+        but_Select = customtkinter.CTkButton(
             master=frame,
-            width=wind.button_X,
-            height=wind.button_Y,
-            text='Select files',
-            fg_color=wind.button_color,
-            font=(wind.button_font,wind.button_fontsize),
-            border_color=wind.button_border_color,
-            border_width=wind.button_bordersize,
+            width=wind2.button_X,
+            height=wind2.button_Y,
+            text='Select\nfiles',
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=funcs.keys.select_files
             )
-        but.place(rely=0.3,relx=0.5,anchor=tkinter.CENTER)
+        but_Select.place(rely=0.16,relx=0.66,anchor=tkinter.CENTER)
 
         #button select folders
-        but = customtkinter.CTkButton(
+        but_Select2 = customtkinter.CTkButton(
             master=frame,
-            width=wind.button_X,
-            height=wind.button_Y,
-            text='Select folders',
-            fg_color=wind.button_color,
-            font=(wind.button_font,wind.button_fontsize),
-            border_color=wind.button_border_color,
-            border_width=wind.button_bordersize,
+            width=wind2.button_X,
+            height=wind2.button_Y,
+            text='Select\nfolders',
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=funcs.keys.select_folders
             )
-        but.place(rely=0.4,relx=0.5,anchor=tkinter.CENTER)
+        but_Select2.place(rely=0.16,relx=0.88,anchor=tkinter.CENTER)
+
+        #button save
+        but_save = customtkinter.CTkButton(
+            master=frame,
+            width=wind2.button_X,
+            height=wind2.button_Y,
+            text='Save log',
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=funcs.writer_Encrypt_Decrypt_Window.save
+            )
+        but_save.place(rely=0.94,relx=0.15,anchor=tkinter.CENTER)
+
+        #info box
+        info2 = customtkinter.CTkTextbox(
+            state='disabled',
+            master=frame,
+            width=wind2.textbox_X,
+            height=wind2.textbox_Y,
+            font=(wind2.textbox_font,wind2.textbox_fontsize)
+            )
+        info2.place(rely=0.56,relx=0.5,anchor=tkinter.CENTER)
+        funcs.writer_Encrypt_Decrypt_Window.create(info2)
 
         #button back (destroy all widgets)
         but2 = customtkinter.CTkButton(
@@ -192,11 +234,11 @@ def window_main():
             width=60,
             height=30,
             text='Back',
-            fg_color=wind.button_color,
-            font=(wind.button_font,wind.button_fontsize),
-            border_color=wind.button_border_color,
-            border_width=wind.button_bordersize,
-            command=lambda: back(but,but2,frame) #input widgets to destroy, here
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=lambda: back(but_Decrypt,but_encrypt,but2,info2,but_Select,but_Select2,frame) #input widgets to destroy, here
             )
         but2.place(rely=0.05,relx=0.09,anchor=tkinter.CENTER)
 
@@ -219,7 +261,7 @@ def window_main():
     # bottom info
     inf2 = customtkinter.CTkLabel(
         master=frame,
-        text='testing edition - do not use for real purposes'
+        text='Info here'
         )
     inf2.place(rely=0.98,relx=0.27,anchor=tkinter.CENTER)
 
@@ -277,7 +319,7 @@ def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.fra
             return
         funcs.keys.loadpassword(password2)
         extframe.configure(fg_color=wind.window_border_color_alert)
-        funcs.wr.write('Password loaded sucessfully. You can use it multiple times in this session, remember to close the program after use. The border color is red beacuse password is loaded')
+        funcs.writer_main_window.write('Password loaded sucessfully. You can use it multiple times in this session, remember to close the program after use. The border color is red beacuse password is loaded')
         pop.destroy()
         funcs.keys.savekeys()
         #change parent frame color
@@ -285,7 +327,7 @@ def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.fra
         
 
     def esq(event):
-        funcs.wr.write('Operation canceled.')
+        funcs.writer_main_window.write('Operation canceled.')
         pop.destroy()
 
 
