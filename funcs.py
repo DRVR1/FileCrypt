@@ -154,7 +154,7 @@ class Keys():
     def select_folders(self):
         a = wx.App(0)
 
-        dirs = tkfilebrowser.askopendirnames(None,title='title')
+        dirs = tkfilebrowser.askopendirnames(None,title='Select folder/s')
         for folder in dirs:
             for path, dirs, files in os.walk(folder):
                 for file in files:
