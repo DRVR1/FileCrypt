@@ -159,6 +159,7 @@ def window_main():
             font=(wind2.button_font,wind2.button_fontsize),
             border_color=wind2.button_border_color,
             border_width=wind2.button_bordersize,
+            command=funcs.keys.encrypt_files
             )
         but_encrypt.place(rely=0.16,relx=0.14,anchor=tkinter.CENTER)
 
@@ -217,6 +218,20 @@ def window_main():
             )
         but_save.place(rely=0.94,relx=0.15,anchor=tkinter.CENTER)
 
+        #Remove selection
+        but_remove_targets = customtkinter.CTkButton(
+            master=frame,
+            width=wind2.button_X,
+            height=wind2.button_Y,
+            text='Remove selection',
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=funcs.keys.clearTargets
+            )
+        but_remove_targets.place(rely=0.94,relx=0.8,anchor=tkinter.CENTER)
+
         #info box
         info2 = customtkinter.CTkTextbox(
             state='disabled',
@@ -227,6 +242,7 @@ def window_main():
             )
         info2.place(rely=0.56,relx=0.5,anchor=tkinter.CENTER)
         funcs.writer_Encrypt_Decrypt_Window.create(info2)
+        funcs.writer_Encrypt_Decrypt_Window.write('Warning: program may seem unresponsive when selecting large amounts of files.')
 
         #button back (destroy all widgets)
         but2 = customtkinter.CTkButton(

@@ -7,7 +7,11 @@ from tkinter.filedialog import askdirectory
 from tkinter.messagebox import askquestion
 from tkinter.filedialog import askopenfilenames
 from tkinter.filedialog import asksaveasfilename
-import wx.lib.agw.multidirdialog as MDD
+
+
+#import wx.lib.agw.multidirdialog as MDD
+import tkfilebrowser
+import pathlib
 import wx
 import os
 import customtkinter
@@ -76,6 +80,8 @@ class Keys():
         self.public_path = ''
         self.private_path = ''
         self.private_encrypted_path = ''
+        self.publicKey = ''
+        self.privateKey = ''
 
         #user selected files - dir
         self.targets = []
@@ -137,19 +143,28 @@ class Keys():
 
     def printPaths(self): #prints selected files and dirs in the selected textbox
         self.writer_Encrypt_Decrypt_Window.clear()
+        lenght = len(self.targets)
+        if lenght > 3000:
+            self.writer_Encrypt_Decrypt_Window.write(str(lenght) + ' files selected')
+            return
         for path in self.targets:
-            self.writer_Encrypt_Decrypt_Window.write(path)
+            self.writer_Encrypt_Decrypt_Window.write('Selected: ' + path)
         pass
 
     def select_folders(self):
         a = wx.App(0)
-        dialog = MDD.MultiDirDialog(None, title="Press (ctrl + click) to select multiple folders", defaultPath=os.getcwd(),agwStyle=MDD.DD_MULTIPLE|MDD.DD_DIR_MUST_EXIST)
-        if dialog.ShowModal() != wx.ID_OK: #if close
-            dialog.Destroy()
-        folders = dialog.GetPaths()
-        for folder in folders:
-            print(folder)
-        pass #TODO continue
+
+        dirs = tkfilebrowser.askopendirnames(None,title='title')
+        for folder in dirs:
+            for path, dirs, files in os.walk(folder):
+                for file in files:
+                    if file.endswith('.lnk'):
+                        continue
+                    fullpath = os.path.join(path,file)
+                    if fullpath not in self.targets:
+                        self.targets.append(fullpath)
+        self.printPaths()            
+        pass 
 
     def select_files(self):
         files = askopenfilenames(title='Add files (you can select multiple files at once)')
@@ -159,6 +174,43 @@ class Keys():
             self.targets.append(file) 
         self.printPaths()
         pass
+
+    def clearTargets(self):
+        self.targets = []
+        self.writer_Encrypt_Decrypt_Window.clear()
+        self.writer_Encrypt_Decrypt_Window.write('No files selected')
+    def encrypt_files(self):
+        if not self.publicKey:
+            writer_Encrypt_Decrypt_Window.write('No public key loaded. Please select your public key.')
+            self.loadpublic()
+        writer_Encrypt_Decrypt_Window.clear()
+        if not self.targets:
+            self.writer_Encrypt_Decrypt_Window.clear()
+            self.writer_Encrypt_Decrypt_Window.write('No files/folder selected')
+            return
+        for target in self.targets:
+            if target.endswith('.ffe'):
+                writer_Encrypt_Decrypt_Window.write('excluding ' + target + ' was already encrypted.')
+                continue
+            encryptor = ffe.Encryptor(self.publicKey)
+            try:
+                destiny = target + '.ffe'
+                target = pathlib.Path(target)
+                destiny = pathlib.Path(destiny)
+                encryptor.copy_encrypted(target,destiny)
+                self.writer_Encrypt_Decrypt_Window.write('encrypted ' + str(target))
+            except:
+                writer_Encrypt_Decrypt_Window.write('error encrypting ' + str(target))
+                continue
+            try:
+                self.safedelete(target)
+            except:
+                writer_Encrypt_Decrypt_Window.write('Error deleting unencrypted ' + str(target))
+                showinfo('Error deleting unencrypted file','An error ocurred while trying to delete an unencrypted file, please close any programs that may be opening this file. ' + str(target))
+                os.remove(destiny)
+                return
+            pass
+
 
     def encrypt_Private(self):
         if self.public_path:
@@ -175,9 +227,9 @@ class Keys():
 
     def loadpublic(self): #enter password and unzip
         showinfo('Information','An explorer window will popup, please select your public key')
-        filename = askopenfilename(title='Open keys file') # show an "Open" dialog box and return the path to the selected file
-        self.publicKey=ffe.read_public_key(ffe)
-        print('filename is: ' + filename)
+        self.public_path = askopenfilename(title='Select your public key') # show an "Open" dialog box and return the path to the selected file
+        self.publicKey=ffe.read_public_key(pathlib.Path(self.public_path))
+        print('public object '+ str(self.publicKey))
 
 #objects
 writer_main_window = Writer() # a writer for the main window
