@@ -2,6 +2,7 @@
 
 #importing required modules
 import tkinter
+import sys
 import customtkinter
 from res import config
 from PIL import Image,ImageTk
@@ -21,6 +22,9 @@ else:
     print('not frozen')
 
 #create the main window
+
+
+
 def window_main():
     #load config
     wind = config.Main_Window()
@@ -45,6 +49,7 @@ def window_main():
             fg_color=wind.window_border_color
             )
         extframe.place(relx=0.5,rely=0.5,anchor=tkinter.CENTER)
+
 
 
     #creating custom frame (main frame)
@@ -89,26 +94,27 @@ def window_main():
         if(funcs.keys.password): 
             res = askquestion(title='FileCrypt',message='A password was already loaded, do you want to reuse it?')
             if res == 'yes': # 3
-                funcs.keys.savekeys()
+                funcs.keys.savekeys(True)
                 pass
             else:
                 funcs.keys.password = ''
-                funcs.writer_main_window.write('password removed.')
+                funcs.keys.writer_main_window.write('password removed.')
                 extframe.configure(fg_color=wind.window_border_color)
                 #ask if create new password
                 res = askquestion(title='FileCrypt',message='Create another password?')
                 if res=='yes': #4
-                    window_passwordInput(app,extframe) 
+                    window_passwordInput(app,extframe,savekeys=True) 
                 else: #5
-                    funcs.keys.savekeys()
+                    funcs.keys.savekeys(False)
                     pass
         else:
             res = askquestion(title='FileCrypt',message='Protect your private key with a password?')
             if res=='yes':# 2 generate new password
-                window_passwordInput(app,extframe) 
+                window_passwordInput(app,extframe,savekeys=True) 
             else:# 1 without password
-                funcs.keys.savekeys() 
+                funcs.keys.savekeys(False) 
                 pass
+
 
     #Generate Keys
     but = customtkinter.CTkButton(
@@ -120,7 +126,7 @@ def window_main():
         font=(wind.button_font,wind.button_fontsize),
         border_color=wind.button_border_color,
         border_width=wind.button_bordersize,
-        command= askWithPassword
+        command=askWithPassword
         )
     but.place(rely=0.25,relx=0.5,anchor=tkinter.CENTER)
 
@@ -173,6 +179,7 @@ def window_main():
             font=(wind2.button_font,wind2.button_fontsize),
             border_color=wind2.button_border_color,
             border_width=wind2.button_bordersize,
+            command=lambda: funcs.keys.decrypt_files(extframe,app,wind,window_passwordInput)
             )
         but_Decrypt.place(rely=0.16,relx=0.38,anchor=tkinter.CENTER)
 
@@ -195,7 +202,7 @@ def window_main():
             master=frame,
             width=wind2.button_X,
             height=wind2.button_Y,
-            text='Select\nfolders',
+            text='Select\nfolder',
             fg_color=wind2.button_color,
             font=(wind2.button_font,wind2.button_fontsize),
             border_color=wind2.button_border_color,
@@ -217,6 +224,20 @@ def window_main():
             command=funcs.writer_Encrypt_Decrypt_Window.save
             )
         but_save.place(rely=0.94,relx=0.15,anchor=tkinter.CENTER)
+
+        #button unload keys
+        but_unload_keys = customtkinter.CTkButton(
+            master=frame,
+            width=wind2.button_X,
+            height=wind2.button_Y,
+            text='Unload keys',
+            fg_color=wind2.button_color,
+            font=(wind2.button_font,wind2.button_fontsize),
+            border_color=wind2.button_border_color,
+            border_width=wind2.button_bordersize,
+            command=funcs.keys.unload_keys
+            )
+        but_unload_keys.place(rely=0.94,relx=0.45,anchor=tkinter.CENTER)
 
         #Remove selection
         but_remove_targets = customtkinter.CTkButton(
@@ -254,7 +275,7 @@ def window_main():
             font=(wind2.button_font,wind2.button_fontsize),
             border_color=wind2.button_border_color,
             border_width=wind2.button_bordersize,
-            command=lambda: back(but_Decrypt,but_encrypt,but2,info2,but_Select,but_Select2,frame) #input widgets to destroy, here
+            command=lambda: back(but_Decrypt,but_encrypt,but2,info2,but_Select,but_Select2,frame,but_remove_targets) #input widgets to destroy, here
             )
         but2.place(rely=0.05,relx=0.09,anchor=tkinter.CENTER)
 
@@ -277,16 +298,16 @@ def window_main():
     # bottom info
     inf2 = customtkinter.CTkLabel(
         master=frame,
-        text='Info here'
+        text='Github/DRVR1'
         )
-    inf2.place(rely=0.98,relx=0.27,anchor=tkinter.CENTER)
+    inf2.place(rely=0.98,relx=0.08,anchor=tkinter.CENTER)
 
 
     app.mainloop()
 
 
 # NEW password input
-def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.frame): #TODO refactor, double password.
+def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.frame,savekeys = False, loadingprivate = False):
     #load config 
     wind = config.Password_input_window()
 
@@ -306,13 +327,7 @@ def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.fra
     pop.title('Password prompt')
     pop.iconbitmap(files.icon)
     pop.wm_attributes("-topmost", 1)
-
-    #pop.geometry('800x500')
     pop.attributes('-fullscreen',True)
-
-    #cancel button
-    #cancel esq
-    #enter button
 
     #password1 entry
     passinp1 = customtkinter.CTkEntry(master=pop,width=wind.password_entry_size[0],height=wind.password_entry_size[1],show='*')
@@ -323,8 +338,10 @@ def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.fra
     passinp2 = customtkinter.CTkEntry(master=pop,width=wind.password_entry_size[0],height=wind.password_entry_size[1],show='*')
     passinp2.place(anchor=tkinter.CENTER,rely=0.56,relx=0.5)
 
+
     #what happens when user press enter
     def enter(event):
+        
         password1 = passinp1.get()
         password2 = passinp2.get()
         if not password1 or not password2:
@@ -333,15 +350,20 @@ def window_passwordInput(parent:customtkinter.CTk,extframe:customtkinter.CTk.fra
         if password1 != password2:
             title.configure(text='Passwords do not match')
             return
-        funcs.keys.loadpassword(password2)
-        extframe.configure(fg_color=wind.window_border_color_alert)
-        funcs.writer_main_window.write('Password loaded sucessfully. You can use it multiple times in this session, remember to close the program after use. The border color is red beacuse password is loaded')
         pop.destroy()
-        funcs.keys.savekeys()
-        #change parent frame color
-        
-        
+        funcs.keys.loadpassword(password1)
+        text = 'Password loaded sucessfully.'
+        try: 
+            funcs.writer_main_window.write(text)
+            funcs.writer_Encrypt_Decrypt_Window.write(text)
+        except:
+            pass
+        if savekeys:
+            funcs.keys.savekeys(True)
+        if loadingprivate:
+            funcs.keys.decryptPrivate()
 
+    
     def esq(event):
         funcs.writer_main_window.write('Operation canceled.')
         pop.destroy()

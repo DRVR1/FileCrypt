@@ -4,3 +4,7 @@ todo.txt
 FileCrypt-log.txt
 __pycache__/funcs.cpython-310.pyc
 res/__pycache__/config.cpython-310.pyc
+__pycache__/nuitka.cpython-310.pyc
+main.build/module.PIL.BlpImagePlugin.const
+*.const
+*.c
