@@ -300,7 +300,7 @@ def window_main():
         master=frame,
         text='github.com/DRVR1'
         )
-    inf2.place(rely=0.98,relx=0.08,anchor=tkinter.CENTER)
+    inf2.place(rely=0.98,relx=0.1,anchor=tkinter.CENTER)
 
 
     app.mainloop()
