@@ -298,7 +298,7 @@ def window_main():
     # bottom info
     inf2 = customtkinter.CTkLabel(
         master=frame,
-        text='Github/DRVR1'
+        text='github.com/DRVR1'
         )
     inf2.place(rely=0.98,relx=0.08,anchor=tkinter.CENTER)
 
