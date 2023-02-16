@@ -297,7 +297,7 @@ class Keys():
         try:   
             home = os.path.expanduser('~')
             tempf = os.path.join(home,str(random.randint(99,999999999)))
-            pyAesCrypt.decryptFile(self.private_encrypted_path,tempf,self.password) #writes decrypted private key to RAM
+            pyAesCrypt.decryptFile(self.private_encrypted_path,tempf,self.password) 
             self.privateKey = ffe.read_private_key(pathlib.Path(tempf))
             self.safedelete(tempf)
             self.writer_Encrypt_Decrypt_Window.write('Private key loaded from ' + self.private_encrypted_path)   
